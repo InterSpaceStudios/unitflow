@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UnitFlow - Universal Unit Converter</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0a0d12;--bg2:#0f1419;--bg3:#151d27;--bg4:#1c2a38;
+--text:#e2e8f0;--text2:#8899aa;--text3:#5a6d7e;
+--accent:#0ea5e9;--accent2:#67e8f9;--green:#00d68f;--orange:#f59e0b;--red:#ef4444;
+--border:#1e2d3d;--card:#0f1720;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+
+/* Header */
+.header{text-align:center;padding:40px 20px 30px;background:linear-gradient(135deg,var(--bg2) 0%,var(--bg3) 100%);border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 30% 40%,rgba(14,165,233,0.05) 0%,transparent 50%);animation:glow 8s ease-in-out infinite alternate}
+@keyframes glow{0%{transform:translate(0,0)}100%{transform:translate(5%,3%)}}
+.logo{font-size:clamp(24px,4vw,36px);font-weight:700;color:var(--accent2);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:12px;position:relative;z-index:1}
+.logo .icon{font-size:1.2em;animation:bounce 2s ease-in-out infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.tagline{color:var(--text2);font-size:16px;position:relative;z-index:1}
+
+/* Container */
+.container{max-width:1000px;margin:0 auto;padding:40px 20px}
+
+/* Category Selection */
+.category-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:32px}
+.category-title{font-size:18px;font-weight:600;margin-bottom:16px;text-align:center;color:var(--text)}
+.category-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.category-btn{padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all 0.3s;text-align:center;font-weight:500;position:relative;overflow:hidden}
+.category-btn:hover{background:var(--bg4);border-color:var(--accent);transform:translateY(-2px)}
+.category-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 4px 20px rgba(14,165,233,0.3)}
+.category-btn .icon{display:block;font-size:24px;margin-bottom:6px}
+
+/* Converter Section */
+.converter-section{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;margin-bottom:32px;opacity:0;transform:translateY(20px);transition:all 0.5s ease}
+.converter-section.active{opacity:1;transform:translateY(0)}
+.converter-title{font-size:20px;font-weight:600;margin-bottom:24px;text-align:center;color:var(--accent2)}
+
+/* Input/Output Grid */
+.converter-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:20px;align-items:center}
+.conversion-input,.conversion-output{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center}
+.conversion-label{font-size:14px;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px}
+.value-input{width:100%;background:transparent;border:none;font-size:24px;font-weight:600;color:var(--text);text-align:center;outline:none;font-family:inherit}
+.value-input::placeholder{color:var(--text3)}
+.unit-select{width:100%;background:var(--bg4);border:1px solid var(--border);border-radius:8px;padding:8px;color:var(--text);font-size:14px;margin-top:8px;cursor:pointer}
+.unit-select:focus{outline:none;border-color:var(--accent)}
+
+/* Swap Button */
+.swap-btn{width:48px;height:48px;background:var(--accent);border:none;border-radius:50%;color:#fff;font-size:20px;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center}
+.swap-btn:hover{background:#38bdf8;transform:scale(1.1) rotate(180deg)}
+
+/* Result Display */
+.result-display{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-top:20px;font-family:'Courier New',monospace;font-size:14px;color:var(--text2);position:relative}
+.copy-btn{position:absolute;top:8px;right:8px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text2);cursor:pointer;font-size:12px;transition:all 0.2s}
+.copy-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* Quick Convert */
+.quick-convert{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;margin-top:20px}
+.quick-title{font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text2)}
+.quick-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.quick-btn{padding:6px 12px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:12px;text-align:center;transition:all 0.2s}
+.quick-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* Mobile Responsive */
+@media(max-width:768px){
+.converter-grid{grid-template-columns:1fr;gap:16px}
+.swap-btn{justify-self:center;transform:rotate(90deg)}
+.swap-btn:hover{transform:rotate(270deg) scale(1.1)}
+.category-grid{grid-template-columns:repeat(2,1fr)}
+}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--green);color:#fff;padding:12px 20px;border-radius:10px;font-weight:600;transform:translateX(400px);transition:transform 0.3s;z-index:1000}
+.toast.show{transform:translateX(0)}
+
+/* Footer */
+.footer{text-align:center;padding:40px 20px;color:var(--text3);font-size:14px;border-top:1px solid var(--border)}
+.footer a{color:var(--accent2);text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="header">
+<h1 class="logo"><span class="icon">📐</span> UnitFlow</h1>
+<p class="tagline">Convert anything to anything, instantly</p>
+</div>
+
+<div class="container">
+
+<!-- Category Selection -->
+<div class="category-section">
+<h2 class="category-title">Choose Category</h2>
+<div class="category-grid">
+<div class="category-btn active" data-category="length">
+<span class="icon">📏</span>
+Length
+</div>
+<div class="category-btn" data-category="weight">
+<span class="icon">⚖️</span>
+Weight
+</div>
+<div class="category-btn" data-category="temperature">
+<span class="icon">🌡️</span>
+Temperature
+</div>
+<div class="category-btn" data-category="volume">
+<span class="icon">🥤</span>
+Volume
+</div>
+<div class="category-btn" data-category="area">
+<span class="icon">📐</span>
+Area
+</div>
+<div class="category-btn" data-category="speed">
+<span class="icon">🏎️</span>
+Speed
+</div>
+<div class="category-btn" data-category="time">
+<span class="icon">⏱️</span>
+Time
+</div>
+<div class="category-btn" data-category="energy">
+<span class="icon">⚡</span>
+Energy
+</div>
+</div>
+</div>
+
+<!-- Converter Interface -->
+<div class="converter-section active" id="converter">
+<h3 class="converter-title" id="converterTitle">Length Converter</h3>
+
+<div class="converter-grid">
+<!-- From Input -->
+<div class="conversion-input">
+<div class="conversion-label">From</div>
+<input type="number" class="value-input" id="fromValue" placeholder="Enter value" step="any">
+<select class="unit-select" id="fromUnit"></select>
+</div>
+
+<!-- Swap Button -->
+<button class="swap-btn" id="swapBtn" title="Swap units">⇄</button>
+
+<!-- To Output -->
+<div class="conversion-output">
+<div class="conversion-label">To</div>
+<input type="number" class="value-input" id="toValue" placeholder="Result" readonly>
+<select class="unit-select" id="toUnit"></select>
+</div>
+</div>
+
+<div class="result-display" id="resultDisplay">
+<button class="copy-btn" id="copyBtn">📋 Copy</button>
+<div id="resultText">Enter a value to see the conversion</div>
+</div>
+
+<div class="quick-convert" id="quickConvert">
+<div class="quick-title">Quick Conversions</div>
+<div class="quick-grid" id="quickGrid"></div>
+</div>
+
+</div>
+
+</div>
+
+<div class="footer">
+<p>Made with ⚡ by RisingForce • <a href="https://github.com/InterSpaceStudios" target="_blank">GitHub</a></p>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+// Conversion data
+const conversions = {
+length: {
+title: 'Length Converter',
+units: {
+mm: { name: 'Millimeters', factor: 0.001 },
+cm: { name: 'Centimeters', factor: 0.01 },
+m: { name: 'Meters', factor: 1 },
+km: { name: 'Kilometers', factor: 1000 },
+inch: { name: 'Inches', factor: 0.0254 },
+ft: { name: 'Feet', factor: 0.3048 },
+yard: { name: 'Yards', factor: 0.9144 },
+mile: { name: 'Miles', factor: 1609.344 }
+},
+quick: [
+{ from: 'ft', to: 'cm', value: 6 },
+{ from: 'mile', to: 'km', value: 1 },
+{ from: 'inch', to: 'cm', value: 12 }
+]
+},
+weight: {
+title: 'Weight Converter',
+units: {
+mg: { name: 'Milligrams', factor: 0.000001 },
+g: { name: 'Grams', factor: 0.001 },
+kg: { name: 'Kilograms', factor: 1 },
+ton: { name: 'Metric Tons', factor: 1000 },
+oz: { name: 'Ounces', factor: 0.0283495 },
+lb: { name: 'Pounds', factor: 0.453592 },
+stone: { name: 'Stones', factor: 6.35029 }
+},
+quick: [
+{ from: 'lb', to: 'kg', value: 150 },
+{ from: 'oz', to: 'g', value: 16 },
+{ from: 'stone', to: 'kg', value: 10 }
+]
+},
+temperature: {
+title: 'Temperature Converter',
+units: {
+celsius: { name: 'Celsius (°C)' },
+fahrenheit: { name: 'Fahrenheit (°F)' },
+kelvin: { name: 'Kelvin (K)' },
+rankine: { name: 'Rankine (°R)' }
+},
+quick: [
+{ from: 'celsius', to: 'fahrenheit', value: 25 },
+{ from: 'fahrenheit', to: 'celsius', value: 100 },
+{ from: 'celsius', to: 'kelvin', value: 0 }
+]
+},
+volume: {
+title: 'Volume Converter',
+units: {
+ml: { name: 'Milliliters', factor: 0.001 },
+l: { name: 'Liters', factor: 1 },
+m3: { name: 'Cubic Meters', factor: 1000 },
+gal: { name: 'Gallons (US)', factor: 3.78541 },
+qt: { name: 'Quarts (US)', factor: 0.946353 },
+pint: { name: 'Pints (US)', factor: 0.473176 },
+cup: { name: 'Cups (US)', factor: 0.236588 },
+floz: { name: 'Fluid Ounces (US)', factor: 0.0295735 }
+},
+quick: [
+{ from: 'gal', to: 'l', value: 5 },
+{ from: 'cup', to: 'ml', value: 2 },
+{ from: 'floz', to: 'ml', value: 8 }
+]
+},
+area: {
+title: 'Area Converter',
+units: {
+mm2: { name: 'Square Millimeters', factor: 0.000001 },
+cm2: { name: 'Square Centimeters', factor: 0.0001 },
+m2: { name: 'Square Meters', factor: 1 },
+km2: { name: 'Square Kilometers', factor: 1000000 },
+in2: { name: 'Square Inches', factor: 0.00064516 },
+ft2: { name: 'Square Feet', factor: 0.092903 },
+acre: { name: 'Acres', factor: 4046.86 },
+hectare: { name: 'Hectares', factor: 10000 }
+},
+quick: [
+{ from: 'ft2', to: 'm2', value: 1000 },
+{ from: 'acre', to: 'hectare', value: 5 },
+{ from: 'km2', to: 'mile2', value: 10 }
+]
+},
+speed: {
+title: 'Speed Converter',
+units: {
+mps: { name: 'Meters/Second', factor: 1 },
+kph: { name: 'Kilometers/Hour', factor: 0.277778 },
+mph: { name: 'Miles/Hour', factor: 0.44704 },
+fps: { name: 'Feet/Second', factor: 0.3048 },
+knot: { name: 'Knots', factor: 0.514444 }
+},
+quick: [
+{ from: 'mph', to: 'kph', value: 60 },
+{ from: 'kph', to: 'mps', value: 100 },
+{ from: 'knot', to: 'mph', value: 20 }
+]
+},
+time: {
+title: 'Time Converter',
+units: {
+ms: { name: 'Milliseconds', factor: 0.001 },
+sec: { name: 'Seconds', factor: 1 },
+min: { name: 'Minutes', factor: 60 },
+hour: { name: 'Hours', factor: 3600 },
+day: { name: 'Days', factor: 86400 },
+week: { name: 'Weeks', factor: 604800 },
+month: { name: 'Months', factor: 2629746 },
+year: { name: 'Years', factor: 31556952 }
+},
+quick: [
+{ from: 'hour', to: 'min', value: 2.5 },
+{ from: 'day', to: 'hour', value: 1 },
+{ from: 'year', to: 'day', value: 1 }
+]
+},
+energy: {
+title: 'Energy Converter',
+units: {
+j: { name: 'Joules', factor: 1 },
+kj: { name: 'Kilojoules', factor: 1000 },
+cal: { name: 'Calories', factor: 4.184 },
+kcal: { name: 'Kilocalories', factor: 4184 },
+wh: { name: 'Watt Hours', factor: 3600 },
+kwh: { name: 'Kilowatt Hours', factor: 3600000 },
+btu: { name: 'BTU', factor: 1055.06 }
+},
+quick: [
+{ from: 'kcal', to: 'kj', value: 500 },
+{ from: 'kwh', to: 'j', value: 1 },
+{ from: 'btu', to: 'j', value: 1000 }
+]
+}
+};
+
+let currentCategory = 'length';
+
+// DOM elements
+const categoryBtns = document.querySelectorAll('.category-btn');
+const converterTitle = document.getElementById('converterTitle');
+const fromValue = document.getElementById('fromValue');
+const toValue = document.getElementById('toValue');
+const fromUnit = document.getElementById('fromUnit');
+const toUnit = document.getElementById('toUnit');
+const swapBtn = document.getElementById('swapBtn');
+const resultDisplay = document.getElementById('resultDisplay');
+const resultText = document.getElementById('resultText');
+const copyBtn = document.getElementById('copyBtn');
+const quickGrid = document.getElementById('quickGrid');
+const toast = document.getElementById('toast');
+
+// Initialize
+init();
+
+function init() {
+categoryBtns.forEach(btn => {
+btn.addEventListener('click', () => switchCategory(btn.dataset.category));
+});
+
+fromValue.addEventListener('input', convert);
+fromUnit.addEventListener('change', convert);
+toUnit.addEventListener('change', convert);
+swapBtn.addEventListener('click', swapUnits);
+copyBtn.addEventListener('click', copyResult);
+
+loadCategory(currentCategory);
+}
+
+function switchCategory(category) {
+if (category === currentCategory) return;
+
+categoryBtns.forEach(btn => btn.classList.remove('active'));
+document.querySelector(`[data-category="${category}"]`).classList.add('active');
+
+currentCategory = category;
+loadCategory(category);
+}
+
+function loadCategory(category) {
+const data = conversions[category];
+converterTitle.textContent = data.title;
+
+// Clear and populate unit selects
+fromUnit.innerHTML = '';
+toUnit.innerHTML = '';
+
+Object.keys(data.units).forEach(key => {
+const option1 = document.createElement('option');
+option1.value = key;
+option1.textContent = data.units[key].name;
+fromUnit.appendChild(option1);
+
+const option2 = document.createElement('option');
+option2.value = key;
+option2.textContent = data.units[key].name;
+toUnit.appendChild(option2);
+});
+
+// Set default selections
+const units = Object.keys(data.units);
+fromUnit.value = units[0];
+toUnit.value = units[1] || units[0];
+
+// Load quick conversions
+loadQuickConversions(data.quick);
+
+// Clear values
+fromValue.value = '';
+toValue.value = '';
+resultText.textContent = 'Enter a value to see the conversion';
+}
+
+function convert() {
+const value = parseFloat(fromValue.value);
+if (isNaN(value) || value === '') {
+toValue.value = '';
+resultText.textContent = 'Enter a value to see the conversion';
+return;
+}
+
+const data = conversions[currentCategory];
+const fromUnitKey = fromUnit.value;
+const toUnitKey = toUnit.value;
+
+let result;
+
+if (currentCategory === 'temperature') {
+result = convertTemperature(value, fromUnitKey, toUnitKey);
+} else {
+const fromFactor = data.units[fromUnitKey].factor;
+const toFactor = data.units[toUnitKey].factor;
+result = (value * fromFactor) / toFactor;
+}
+
+toValue.value = result.toLocaleString('en-US', { 
+maximumFractionDigits: 8,
+minimumFractionDigits: 0
+});
+
+const fromName = data.units[fromUnitKey].name;
+const toName = data.units[toUnitKey].name;
+resultText.textContent = `${value.toLocaleString()} ${fromName} = ${result.toLocaleString('en-US', { maximumFractionDigits: 8 })} ${toName}`;
+}
+
+function convertTemperature(value, from, to) {
+// Convert to Celsius first
+let celsius;
+switch(from) {
+case 'celsius': celsius = value; break;
+case 'fahrenheit': celsius = (value - 32) * 5/9; break;
+case 'kelvin': celsius = value - 273.15; break;
+case 'rankine': celsius = (value - 491.67) * 5/9; break;
+}
+
+// Convert from Celsius to target
+switch(to) {
+case 'celsius': return celsius;
+case 'fahrenheit': return celsius * 9/5 + 32;
+case 'kelvin': return celsius + 273.15;
+case 'rankine': return celsius * 9/5 + 491.67;
+}
+}
+
+function swapUnits() {
+const fromVal = fromUnit.value;
+fromUnit.value = toUnit.value;
+toUnit.value = fromVal;
+
+const fromValInput = fromValue.value;
+fromValue.value = toValue.value;
+toValue.value = fromValInput;
+
+convert();
+}
+
+function loadQuickConversions(quickData) {
+quickGrid.innerHTML = '';
+quickData.forEach(q => {
+const btn = document.createElement('div');
+btn.className = 'quick-btn';
+btn.textContent = `${q.value} ${q.from} → ${q.to}`;
+btn.addEventListener('click', () => {
+fromUnit.value = q.from;
+toUnit.value = q.to;
+fromValue.value = q.value;
+convert();
+});
+quickGrid.appendChild(btn);
+});
+}
+
+function copyResult() {
+navigator.clipboard.writeText(resultText.textContent).then(() => {
+showToast('Copied to clipboard!');
+});
+}
+
+function showToast(message) {
+toast.textContent = message;
+toast.classList.add('show');
+setTimeout(() => toast.classList.remove('show'), 2000);
+}
+</script>
+
+</body>
+</html>
